@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Корзина</title>
+<body>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(255, 255, 255, 0.0); /* Полностью прозрачный фон */
+        }
+        .window {
+            width: 600px;
+            height: 400px;
+            border: 5px solid blue;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный белый фон, можно изменить значение */
+            overflow: auto;
+            position: relative;
+        }
+        .window h1 {
+            text-align: center;
+        }
+	    .buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный белый фон */
+        }
+        .buttons button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+
+        }
+    </style>
+
+<script>
+    var array4 = [];
+
+    function clearCart() {
+        array4 = [];
+        saveArray4();
+        populateCart();
+    }
+
+    function saveArray4() {
+        localStorage.setItem('array4', JSON.stringify(array4));
+    }
+
+    function loadArray4() {
+        var storedArray = localStorage.getItem('array4');
+        return storedArray ? JSON.parse(storedArray) : [];
+    }
+
+    array4 = loadArray4();
+    populateCart();
+
+function populateCart() {
+    let n2n = localStorage.getItem('n2n');
+//    alert('Значение прочитал: ' + n2n);
+
+//    let array4 = [];
+    if (n2n && n2n !== 'null' && n2n !== null) {
+        let parts = n2n.split('|');
+		let j = 0;
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i] === 'null') {
+                break;  // Прекращаем обработку строки, если встречается null
+            }
+            array4.push(parts[i]);
+            if (i === j) {
+                array4.push('1');
+                j += 2;  // Увеличение j на 3
+            }
+        }
+        // Удаляем элемент со значением null, если он есть в array4 
+		array4 = array4.filter(element => element !== null);
+        saveArray4(array4);
+        localStorage.removeItem('n2n'); // Удаление вместо записи null
+		// Сохранение null в локальное хранилище
+        // localStorage.setItem('n2n', null);
+    }
+
+    const cartTableBody = document.querySelector("#cartTable tbody");
+    const totalSumElement = document.getElementById("totalSum");
+
+    cartTableBody.innerHTML = '';
+    let totalSum = 0;
+
+
+array4.forEach((item, i) => {
+    if (i % 3 === 0) {
+        const name = array4[i];
+        const quantity = array4[i + 1];
+        const price = array4[i + 2];
+        const sum = Number(quantity) * Number(price);
+//    alert('Значение прочитал 1 : ' + array4[i] + '---' + array4[i+1] + '---' + array4[i+2] + '---' + sum);		
+
+        const row = document.createElement("tr");
+        row.innerHTML = ` 
+		    <td>${name}</td>
+                <td>
+                    <input 
+                        type="number" 
+                        value="${quantity}" 
+                        min="0" 
+                        class="quantity" 
+                        data-index="${i}" 
+                        data-price="${price}" 
+                        style="width: 60px;" 
+                    />
+                </td>
+                <td>${price}</td>
+                <td class="sum">${sum}</td>
+            `;
+        cartTableBody.appendChild(row);
+
+        totalSum += sum;
+    }
+});
+
+// После добавления строк в таблицу добавляем обработчики событий
+const inputs = document.querySelectorAll(".quantity");
+inputs.forEach(input => {
+    input.addEventListener("input", function () {
+        const index = Number(this.getAttribute("data-index")); // Индекс первого элемента из группы (name)
+        const newQuantity = Number(this.value); // Новое значение quantity
+        const price = Number(this.getAttribute("data-price")); // Цена из data-атрибута
+
+        if (newQuantity === 0) {
+            // Удаление элемента из массива
+            array4.splice(index, 3); // Удаляем name, quantity и price
+            localStorage.setItem('array4', JSON.stringify(array4));
+
+            // Удаление строки из таблицы
+            this.closest("tr").remove();
+
+            return; // Завершаем обработку события
+        }
+
+        const newSum = newQuantity * price;
+
+        // Обновление суммы в таблице
+        const sumElement = this.closest("tr").querySelector(".sum");
+        sumElement.textContent = newSum;
+
+        // Обновление array4
+        array4[index + 1] = String(newQuantity);
+
+        // Сохранение изменений в localStorage
+        localStorage.setItem('array4', JSON.stringify(array4));
+    });
+});
+
+    totalSumElement.textContent = totalSum;
+    attachEventListeners();
+}
+
+function saveArray4(array4) {
+    localStorage.setItem('array4', JSON.stringify(array4));
+}
+
+function attachEventListeners() {
+    // Пример добавления событий
+    const inputs = document.querySelectorAll(".quantity");
+    inputs.forEach(input => {
+        input.addEventListener("input", function () {
+            const price = Number(this.getAttribute("data-price"));
+            const newQuantity = Number(this.value);
+            const newSum = price * newQuantity;
+
+            const sumElement = this.closest("tr").querySelector(".sum");
+            sumElement.textContent = newSum;
+        });
+    });
+}
+
+</script>
+<script>     
+    function attachEventListeners() {
+        const quantityInputs = document.querySelectorAll(".quantity");
+        const totalSumElement = document.getElementById("totalSum");
+   
+        quantityInputs.forEach(input => {
+            input.addEventListener("input", function () {
+                const row = this.closest("tr");
+                const price = parseInt(this.dataset.price);
+                const quantity = parseInt(this.value) || 0;
+                const sumCell = row.querySelector(".sum");
+                const sum = quantity * price;
+                sumCell.textContent = sum;
+                updateTotalSum();
+            });
+        });
+    }
+
+    function updateTotalSum() {
+        const sumCells = document.querySelectorAll(".sum");
+        const totalSumElement = document.getElementById("totalSum");
+        let totalSum = 0;
+        sumCells.forEach(cell => {
+            totalSum += parseInt(cell.textContent) || 0;
+        });
+        totalSumElement.textContent = totalSum;
+    }
+
+    function closeWindow() {
+        window.history.back();
+    }
+// /////////////////////////////////////////////////////////////////////////////
+
+function showCommentField() {
+    document.getElementById("commentSection").style.display = "block"; // Показываем комментарий
+}
+
+function cancelPayment() {
+    document.getElementById("commentSection").style.display = "none"; // Скрываем комментарий
+}
+
+function proceedToPayment() {
+    const name = localStorage.getItem('username') || "Не указано";
+    const password = localStorage.getItem('password') || "Не указано";
+    const array4 = JSON.parse(localStorage.getItem('array4')) || [];
+    const clientComment = document.getElementById('clientComment').value.trim() || "Без комментария";
+
+    if (!array4 || !Array.isArray(array4)) {
+        return;
+    }
+
+    const fileContent = `Имя: ${name}\nПароль: ${password}\nКомментарий: ${clientComment}\nМассив данных: ${JSON.stringify(array4, null, 2)}`;
+    document.getElementById('fileData').value = fileContent;
+
+    document.getElementById('paymentForm').submit();
+
+    const confirmButton = document.getElementById('confirmPaymentButton');
+    confirmButton.style.backgroundColor = 'orange';
+    confirmButton.innerText = 'Обработка...';
+
+    document.getElementById('hiddenFrame').onload = () => {
+        confirmButton.style.backgroundColor = 'green';
+        confirmButton.innerText = 'Оплата завершена';
+        alert('Данные успешно обработаны!');
+        cancelPayment();
+    };
+}
+    function closeWindow() {
+        window.close();
+	}
+/////////////////////////////////////////////////////////////////////////////////		
+    document.addEventListener("DOMContentLoaded", populateCart);
+</script>
+
+<div class="window">
+    <h1>Корзина</h1>
+    <table id="cartTable">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="total">Итоговая сумма</td>
+                <td id="totalSum">0</td>
+            </tr>
+        </tfoot>
+    </table>
+<div class="buttons">
+    <form id="paymentForm" action="hello.php" method="POST" enctype="multipart/form-data" target="hiddenFrame">
+        <!-- Блок с основными кнопками -->
+        <div id="mainButtons">
+            <button id="paymentButton" type="button" onclick="showCommentField()">Оплата</button>
+            <button type="button" onclick="clearCart()">Очистить корзину</button>
+            <button type="button" onclick="closeWindow()" style="background-color: red; color: white; border: none; border-radius: 5px; padding: 10px 20px; cursor: pointer;">Закрыть</button>
+        </div>
+
+        <!-- Контейнер для комментария (изначально скрыт) -->
+        <div id="commentSection" style="display: none; margin-top: 10px;">
+            <label for="clientComment">Укажите данные для связи:</label>
+            <textarea id="clientComment" name="clientComment" rows="3" cols="70" placeholder="Введите ваш комментарий..."></textarea>
+            <div>
+                <button id="confirmPaymentButton" type="button" onclick="proceedToPayment()">Подтвердить оплату</button>
+                <button type="button" onclick="cancelPayment()" style="background-color: gray; color: white;">Отмена</button>
+            </div>
+        </div>
+
+        <input type="hidden" id="fileData" name="fileData">
+    </form>
+
+    <iframe id="hiddenFrame" name="hiddenFrame" style="display:none;"></iframe>
+</div>
+
+</div>
+</body>
+</html>

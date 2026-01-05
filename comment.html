@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оставить комментарий</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+        }
+        .buttons {
+            margin-top: 10px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Добавить комментарий</h2>
+    <textarea id="commentText" placeholder="Введите ваш комментарий..."></textarea>
+    
+    <div class="buttons">
+        <button onclick="submitComment()">Отправить</button>
+        <button onclick="window.close()">Выход</button>
+    </div>
+
+    <script>
+    function submitComment() {
+        const comment = document.getElementById('commentText').value.trim();
+        if (!comment) {
+            alert("Комментарий не может быть пустым!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('comment', comment);
+
+        fetch('save_comment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            alert(result);
+            window.close();
+        })
+        .catch(error => console.error('Ошибка:', error));
+    }
+    </script>
+</body>
+</html>

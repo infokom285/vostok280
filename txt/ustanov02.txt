@@ -1,0 +1,16 @@
+verbs            =Verbos
+presente         =Presente de Indicativo
+indefinido       =Pretérito Indefinido
+perfecto         =Pretérito Perfecto
+gerundio         =Estar+Gerundio
+gustar           =Gustar
+rules            =Rules
+numbers          =Числа
+accent           =Ударение
+opt              =Опт
+blog             =Blog
+php              =PHP
+phpReport        =PHP-отчет
+downloadFile     =download_file
+downloadFile1    =download_file1
+downloadFile2    =download_file2

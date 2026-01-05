@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<!-- main.html -->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>infokom.vip</title>
+	<link rel="stylesheet" href="css/styles10.css">
+</head>
+
+<body>
+<script src="js\main.js"></script>     <!-- объявление глобальных массивов -->
+
+<div id="container"></div> 
+<div id="php-output"></div>    
+<div id="array-output"></div>  
+<!-- <div id="array-print"></div>   
+     <div id="array1-print"></div>  
+     <div id="array2-print"></div>  -->
+<script>
+    let array0 = []; // Одномерный массив
+    let array  = []; // Названия товаров
+    let array1 = []; // URL изображений
+    let array2 = []; // Цены товаров
+    // Функция загрузки данных
+    function loadData() {
+        fetch('data.php')
+            .then(response => response.json()) // Получаем ответ как JSON
+            .then(data => {
+//console.log("Ответ от PHP:", data); // Лог в консоль
+// Вывод сырых данных из PHP
+//document.getElementById('php-output').textContent =
+//    "Ответ PHP:\n" + JSON.stringify(data, null, 2);
+                // Преобразование двумерного массива из JSON в одномерный массив
+                data.forEach(item => {
+                    array0.push(item[0], item[1], item[2]);
+                });
+// console.log("Загруженные данные в array0:", array0);
+// Вывод массива array0 на экран
+//document.getElementById('array-output').textContent =
+//    "array0:\n" + array0.join("\n");
+                // Заполняем массивы array, array1, array2
+                fillArrays();
+                // Отрисовываем контейнеры после заполнения массивов
+                renderContainers();
+            })
+            .catch(error => console.error('Ошибка загрузки данных:', error));
+    }
+    // Функция заполнения массивов
+    function fillArrays() {
+	let k = 0; // Переменная k объявлена и инициализирована перед циклом
+        for (let i = 0; i < array0.length; i += 3) {
+            k++; // Увеличиваем k
+            array.push(array0[i] + ' {' + k + '}'); // Название товара
+            array1.push(array0[i + 1]); // URL изображения
+            array2.push(array0[i + 2]); // Цена
+        }
+	}
+// Функция для создания контейнера с изображением и HTML-текстом
+function createContainer(index) {
+    var container = document.createElement("div");
+    container.classList.add("box");
+
+    var imgContainer = document.createElement("div");
+    imgContainer.classList.add("img-container");
+
+    var img = document.createElement("img");
+    img.src = array1[index] || "default_image.png"; // URL изображения
+    img.alt = "Изображение " + index;
+
+    var text = document.createElement("p");
+    text.classList.add("text");
+    text.innerHTML = array[index] || "Данные отсутствуют"; // Используем innerHTML
+
+    var text1 = document.createElement("p");
+    text1.classList.add("text1");
+    text1.innerHTML = array2[index] || "Данные отсутствуют"; // Используем innerHTML
+
+    imgContainer.appendChild(img);
+    container.appendChild(imgContainer);
+    container.appendChild(text);
+    container.appendChild(text1);
+
+    img.addEventListener('click', function() {
+        // Сохраняем содержимое контейнера в локальное хранилище
+        localStorage.setItem('containerContent', JSON.stringify({
+            imgSrc: array1[index], // Используем правильный источник изображения
+            text: array[index],
+            text1: array2[index] // Используем правильный порядок сохранения
+        }));    
+
+        localStorage.setItem('n', index); // Сохраняем индекс
+        window.open('gl_2.html', '_blank', 'width=600,height=400,left=300,top=300,resizable=yes,scrollbars=yes');
+    });
+
+    return container;
+}
+
+    // Функция отрисовки контейнеры
+	function renderContainers() {
+        var mainContainer = document.getElementById("container");
+        if (!mainContainer) {
+            console.error("Элемент с id='container' не найден в HTML.");
+        return;
+        }
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] && array1[i] && array2[i]) {
+                var container = createContainer(i);
+                mainContainer.appendChild(container);
+            }
+        }
+    }
+
+    // Запускаем загрузку данных при загрузке страницы
+    document.addEventListener("DOMContentLoaded", loadData);
+</script>
+
+<header class="header">
+<style>
+    .number-row-wrapper {
+        display: flex;
+        justify-content: center; /* Центрирование кнопок */
+        margin-top: 10px;
+    }
+    .number-row {
+        display: flex;
+		justify-content: center;
+        flex-wrap: wrap; /* Позволяет переносить кнопки, если не хватает места */
+        gap: 5px; /* Отступ между кнопками */
+    }
+    .number-row button {
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+    .number-row button:hover {
+        background-color: #ddd;
+    }
+</style>
+<div class="header-container">
+    <!-- Верхний блок: кнопка поиска, имя, корзина, логотип -->
+    <div class="top-row">
+        <button onclick="searchProduct()" class="search-button">&#128269;</button>
+
+        <button onclick="openNameWindow()" class="name-button">
+            <span id="usernameDisplay">name</span>
+        </button>
+
+        <button onclick="openKorzina()" class="cart-button">
+            <img src="img/cart_icon.png" alt="Корзина" class="cart-icon">
+        </button>
+
+        <img src="img/logo.png" alt="Логотип" class="logo">
+    </div>
+
+    <!-- Строка поиска -->
+    <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Введите название товара (поиск по трем словам)">
+    </div>
+
+<!-- Контейнер для найденных товаров
+<div id="dynamicContainer" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;"></div>  -->
+
+ <!--    Контейнер для динамических кнопок 
+    <div class="dynamic-buttons-container">
+        <div class="dynamic-buttons" id="dynamicButtonsContainer"></div>
+    </div>  -->
+	<!-- Контейнер для номеров найденных контейнеров 
+<div id="numberRow" style="margin-top: 10px; padding: 10px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+-->
+<!--<input type="text" id="searchInput" placeholder="Введите для поиска..."> -->
+<div id="numberRow"></div>
+<div id="dynamicContainer"></div>
+    <!-- Строка меню -->
+    <div class="header-row">
+        <div class="header-part">
+            <a href="#" id="menuVerbs">Verbos-глаголы</a>
+            <div class="dropdown-content" id="verbsDropdown">
+                <a href="verbos_pi.html" id="menuPresente">Presente de Indicativo</a>
+                <a href="verbos_pd.html" id="menuIndefinido">Pretérito Indefinido</a>
+                <a href="verbos_pp.html" id="menuPerfecto">Pretérito Perfecto</a>
+                <a href="gerundio.html" id="menuGerundio">Estar+Gerundio</a>
+                <a href="gustar.html" id="menuGustar">Gustar</a>
+            </div>
+        </div>
+        <div class="header-part">
+            <a href="#" id="menuRules">Правила</a>
+            <div class="dropdown-content" id="rulesDropdown">
+                <a href="chisla.html" id="menuNumbers">Числа</a>
+                <a href="udarenie.html" id="menuAccent">Ударение</a>
+            </div>
+        </div>
+        <div class="header-part opt">
+            <a href="chisla.html" id="menuOpt">Опт</a>
+        </div>
+        <div class="header-part opt">
+            <button id="menuBlog" onclick="openCommentWindow()">Блог</button>
+        </div>
+        <div class="header-part">
+            <a href="#" id="menuPHP">PHP</a>
+            <div class="dropdown-content" id="phpDropdown">
+                <a href="php/a1.php" onclick="requestPassword('php/a1.php')" id="menuPHPReport">PHP-отчет</a>
+                <a href="download_file.php" onclick="requestPassword('php/a1.php')" id="menuDownloadFile">download_file</a>
+                <a href="download_file1.php" onclick="requestPassword('php/a1.php')" id="menuDownloadFile1">download_file1</a>
+                <a href="download_file2.php" onclick="requestPassword('php/a1.php')" id="menuDownloadFile2">download_file2</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.header-container {
+    display: flex;                   /* Включает Flexbox для управления расположением элементов внутри */
+    flex-direction: column;          /* Размещает элементы в колонку (один под другим) */
+    align-items: center;             /* Выравнивает элементы по центру горизонтально */
+    width: 100%;                     /* Задает ширину контейнера на всю доступную ширину родителя */
+    padding: 2px;                    /* Добавляет внутренний отступ 5 пикселей со всех сторон */
+    border-bottom: 1px solid #ccc;   /* Добавляет нижнюю границу серого цвета толщиной 1 пиксель */
+    background-color: #f8f8f8;       /* Устанавливает светло-серый фон */
+}
+
+/* Селектор .top-row Верхний ряд (поиск, имя, корзина, логотип) */
+.top-row {
+    display: flex;                   /* Включает Flexbox для организации элементов в строку */
+    align-items: center;             /* Выравнивает элементы по центру вертикально */
+    justify-content: space-between;  /* Размещает элементы с максимальным расстоянием между ними */
+    width: 100%;                     /* Задает ширину блока во всю доступную ширину родителя */
+    max-width: 600px;                /* Ограничивает максимальную ширину блока до 600px */
+    padding: 2px 0;                  /* Добавляет вертикальный отступ 5px (сверху и снизу), без горизонтального */
+}
+
+.search-button, .cart-button, .name-button {
+    background: none;  /* Убирает фоновый цвет кнопки */
+    border: none;      /* Убирает границу у кнопки */
+    cursor: pointer;   /* Дает визуальное указание, что элемент кликабельный */
+}
+
+/* Стили для кнопки с именем */
+.name-button {
+    background: none;   /* Убираем фон */
+    border: none;       /* Убираем границы */
+    cursor: pointer;    /* Делаем курсор указателем при наведении */
+    padding: 5px 10px;  /* Добавляем отступы */
+    display: flex;      /* Выравниваем содержимое кнопки */
+    align-items: center; /* Центрируем текст по вертикали */
+}
+
+/* Стили для самого имени */
+#usernameDisplay {
+    font-size: 18px;   /* Размер шрифта */
+    font-weight: bold; /* Делаем текст жирным */
+    color: #333;       /* Темно-серый цвет */
+    white-space: nowrap; /* Запрещаем перенос текста */
+    margin: 0px 0px;      /* Добавляем отступ слева и справа */
+}
+.cart-icon {
+    width: 30px;  /* Устанавливает фиксированную ширину 35 пикселей */
+    height: auto; /* Позволяет высоте изменяться пропорционально ширине */
+}
+
+.logo {
+    width: 130px;  /* Увеличиваем ширину логотипа */
+    height: auto;  /* Автоматическая высота для сохранения пропорций */
+    border-radius: 0; /* Убираем закругленные углы */
+}
+
+/* Поле ввода */
+.search-input-wrapper {
+    width: 100%; /* Контейнер занимает всю доступную ширину */
+    max-width: 600px; /* Ограничиваем максимальную ширину 600px */
+    margin-top: 5px; /* Отступ сверху 10px */
+}
+#searchInput {
+    width: 100%; /* Поле ввода занимает всю доступную ширину контейнера */
+    height: 30px; /* Фиксированная высота 35px */
+    padding-left: 10px; /* Отступ слева внутри поля 10px */
+    border: 1px solid #ccc; /* Тонкая серая граница */
+    border-radius: 4px; /* Закругленные углы 4px */
+}
+
+/* Контейнер для динамических кнопок */
+.dynamic-buttons-container {
+    width: 100%; /* Растягивается на всю доступную ширину */
+    max-width: 600px; /* Ограничение максимальной ширины до 600px */
+    min-height: 20px; /* Минимальная высота 40px */
+    border: 1px solid #ccc; /* Серая рамка толщиной 1px */
+    border-radius: 2px; /* Закругление углов (4px) */
+    padding: 1px; /* Внутренние отступы */
+    margin-top: 1px; /* Отступ сверху */
+    display: flex; /* Используется flexbox для расположения элементов */
+    justify-content: center; /* Выравнивание содержимого по центру */
+    background-color: #f9f9f9; /* Светло-серый фон */
+}
+
+/* Блок кнопок */
+.dynamic-buttons {
+    display: flex; /* Использует flexbox для кнопок */
+    flex-wrap: wrap; /* Позволяет кнопкам переноситься на новую строку, если не хватает места */
+    gap: 1px; /* Отступ между кнопками */
+    justify-content: center; /* Выравнивание кнопок по центру */
+    width: 100%; /* Растягивание блока на всю доступную ширину */
+    align-items: stretch; /* Растягивает кнопки по высоте */
+}
+
+.dynamic-buttons button {
+    height: 30px; /* Фиксированная высота кнопок */
+    min-width: 60px; /* Минимальная ширина */
+    padding: 2px 2px; /* Внутренние отступы */
+    font-size: 10px; /* Размер шрифта */
+    border: none; /* Убираем рамку */
+    border-radius: 2px; /* Скругление углов */
+    cursor: pointer; /* Делаем кнопку кликабельной */
+}
+/* Меню (четвёртая строка) */
+.header-row {
+    display: flex; /* Используем flex-контейнер для расположения элементов в строку */
+    justify-content: center; /* Центрируем содержимое по горизонтали */
+    flex-wrap: wrap; /* Позволяем кнопкам переноситься на новую строку при нехватке места */
+    width: 100%; /* Занимает всю ширину родительского контейнера */
+    max-width: 800px; /* Ограничиваем максимальную ширину */
+    margin-top: 1px; /* Отступ сверху */
+    gap: 5px; /* Расстояние между кнопками */
+    min-height: 20px; /* Уменьшаем минимальную высоту */
+    padding: 2px 2px; /* Уменьшаем внутренние отступы сверху и снизу */
+	/* background-color: blue; /* Устанавливаем синий фон */
+	height: 40px; /* Устанавливает фиксированную высоту */
+}
+
+.header-part {
+    margin: 2px; /* Добавляет небольшой внешний отступ */
+    position: relative; /* Позволяет позиционировать вложенные элементы относительно этого блока */
+}
+
+/* Уменьшаем кнопки меню */
+.header-part a, .header-part button {
+    font-size: 12px; /* Уменьшаем размер шрифта */
+    padding: 3px 6px; /* Делаем кнопки компактнее, уменьшая внутренние отступы */
+    border-radius: 4px; /* Скругляем углы кнопок */
+    background: #ddd; /* Светло-серый фон */
+    border: none; /* Убираем границы */
+    cursor: pointer; /* Делаем кнопку кликабельной */
+    white-space: nowrap; /* Запрещаем перенос текста на новую строку */
+}
+
+/* Оптовые кнопки */
+.header-part .opt {
+    background-color: #00FF00; /* Ярко-зелёный цвет для выделения */
+}
+
+/* Выпадающие списки */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 10;
+    min-width: 120px; /* Сделал уже, чтобы лучше вписывалось */
+}
+
+.header-part:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    font-size: 12px; /* Уменьшаем текст в выпадающем списке */
+    padding: 4px 8px;
+    display: block;
+    text-align: left;
+}
+#container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Центрирование контейнеров */
+    gap: 10px; /* Отступы между контейнерами */
+	padding: 150px 5px 5px 5px; /* 10px сверху, 10px справа, 10px снизу, 10px слева */
+}
+
+.box {
+    width: calc(22% - 5px); /* Увеличили ширину контейнера */
+    max-width: 220px; /* Увеличили максимальную ширину */
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    text-align: center;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 2px; /* Уменьшили расстояние между контейнерами */
+}
+
+/* Контейнер изображения */
+.img-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.img-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Медиа-запрос для смартфонов */
+@media (max-width: 768px) {
+    .box {
+        width: 100%; /* 1 контейнер в строке */
+        max-width: none; /* Разрешаем полную ширину */
+    }
+}
+</style>
+
+<script>
+let username = "user";
+
+// Функция для обновления имени в шапке
+function updateUsernameDisplay(newName) {
+    document.getElementById("usernameDisplay").textContent = newName;
+}
+
+// Функция для открытия окна ввода имени
+function openNameWindow() {
+    const width = 450;
+    const height = 250;
+    const screenLeft = window.screenLeft || window.screenX;
+    const screenTop = window.screenTop || window.screenY;
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+    const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+    const left = screenLeft + (screenWidth - width) / 2;
+    const top = screenTop + (screenHeight - height) / 2;
+
+    const newWindow = window.open(
+        '',
+        'usnameWindow',
+        `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=yes`
+    );
+
+    if (newWindow) {
+        newWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="ru">
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Авторизация</title>
+            <style>
+                form {
+                    border: 2px solid blue;
+                    padding: 15px;
+                    width: 100%;
+                    box-sizing: border-box;
+                    margin: auto;
+                }
+                input[type="text"], input[type="password"] {
+                    background-color: lightgrey;
+                    border: 1px solid grey;
+                    padding: 5px;
+                    width: calc(100% - 12px);
+                    margin-bottom: 10px;
+                }
+                input[type="submit"] {
+                    background-color: blue;
+                    color: white;
+                    border: none;
+                    padding: 10px;
+                    cursor: pointer;
+                }
+                button {
+                    background-color: red;
+                    color: white;
+                    border: none;
+                    padding: 10px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                }
+            </style>
+            <body>
+                <form id="loginForm">
+                   <label for="usernameInput" id="labelUsername">Имя:</label><br>
+                   <input type="text" id="usernameInput" name="username" placeholder="Введите имя" required><br><br>
+                   <label for="passwordInput" id="labelPassword">Пароль:</label><br>
+                   <input type="password" id="passwordInput" name="password" placeholder="Введите пароль" required><br><br>
+                   <input type="submit" id="submitButton" value="Войти">
+                   <button type="button" id="closeButton" onclick="window.close()">Закрыть</button>
+                </form>
+                <script>
+                    function loadTexts() {
+                        return fetch('get_texts.php')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error("Ошибка загрузки текстов с сервера.");
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.error) {
+                                    console.error("Ошибка:", data.error);
+                                } else {
+                                    document.getElementById("labelUsername").textContent = data.usernameLabel;
+                                    document.getElementById("labelPassword").textContent = data.passwordLabel;
+                                    document.getElementById("submitButton").value = data.submitButton;
+                                    document.getElementById("closeButton").textContent = data.closeButton;
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Ошибка при загрузке:", error);
+                            });
+                    }
+					
+                    document.addEventListener("DOMContentLoaded", loadTexts);
+                    
+                    document.getElementById('loginForm').onsubmit = function (event) {
+                        event.preventDefault();
+                 
+                        const username = document.getElementById('usernameInput').value;
+                        const password = document.getElementById('passwordInput').value;
+                        const formData = new FormData(this);
+                 
+                        fetch('login.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Ошибка сети');
+                                }
+                                return response.text();
+                            })
+                            .then(data => {
+                                alert('Ответ сервера: ' + data);
+                                localStorage.setItem('username', username);
+                                window.opener.updateUsernameDisplay(username);
+                                window.close();
+                            })
+                            .catch(error => {
+                                alert('Произошла ошибка: ' + error.message);
+                            });
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        newWindow.document.close();
+    } else {
+        console.error('Не удалось открыть новое окно. Возможно, всплывающие окна заблокированы.');
+    }
+}
+
+// Удаляем username из локального хранилища при загрузке страницы
+localStorage.removeItem('username');
+
+// При загрузке страницы обновляем имя из localStorage
+document.addEventListener("DOMContentLoaded", () => {
+    const savedUsername = localStorage.getItem('username');
+    if (savedUsername) {
+        updateUsernameDisplay(savedUsername);
+    }
+});
+</script>
+
+<!-- Класс "korzina" (%) ***************************************** -->
+<script>
+    function openKorzina() {
+        // Размеры окна
+        const width = 600;
+        const height = 500;
+
+        // Вычисление координат для центрирования окна
+        const screenLeft = window.screenLeft || window.screenX;
+        const screenTop = window.screenTop || window.screenY;
+        const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+        const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+
+        const left = screenLeft + (screenWidth - width) / 2;
+        const top = screenTop + (screenHeight - height) / 2;
+
+        // Открыть новое окно с программой korzina.html
+        window.open(
+            'korzina.html',
+            'KorzinaWindow',
+            `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=yes`
+        );
+    }
+</script>
+
+<script>
+function openCommentWindow() {
+    const width = 650;
+    const height = 320;
+    const screenLeft = window.screenLeft || window.screenX;
+    const screenTop = window.screenTop || window.screenY;
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+    const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+    const left = screenLeft + (screenWidth - width) / 2;
+    const top = screenTop + (screenHeight - height) / 2;
+
+    const newWindow = window.open(
+        'comment.html',
+        'commentWindow',
+        `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=yes`
+    );
+}
+
+function loadMenuTexts() {
+    fetch('menu_texts.php')
+        .then(response => {
+            console.log("Ответ сервера получен:", response);
+            if (!response.ok) {
+                throw new Error("Ошибка загрузки данных меню.");
+            }
+            return response.json();
+        })
+        .then(menuTexts => {
+            console.log("JSON-ответ:", menuTexts);
+            if (menuTexts.error) {
+                console.error("Ошибка:", menuTexts.error);
+            } else {
+                // Устанавливаем текстовые значения
+                document.getElementById("menuVerbs").textContent = menuTexts.verbs || "Verbos";
+                document.getElementById("menuPresente").textContent = menuTexts.presente || "Presente de Indicativo";
+                document.getElementById("menuIndefinido").textContent = menuTexts.indefinido || "Pretérito Indefinido";
+                document.getElementById("menuPerfecto").textContent = menuTexts.perfecto || "Pretérito Perfecto";
+                document.getElementById("menuGerundio").textContent = menuTexts.gerundio || "Estar+Gerundio";
+                document.getElementById("menuGustar").textContent = menuTexts.gustar || "Gustar";
+
+                document.getElementById("menuRules").textContent = menuTexts.rules || "Правила";
+                document.getElementById("menuNumbers").textContent = menuTexts.numbers || "Числа";
+                document.getElementById("menuAccent").textContent = menuTexts.accent || "Ударение";
+
+                document.getElementById("menuOpt").textContent = menuTexts.opt || "Опт";
+                document.getElementById("menuBlog").textContent = menuTexts.blog || "Блог";
+
+                document.getElementById("menuPHP").textContent = menuTexts.php || "PHP";
+                document.getElementById("menuPHPReport").textContent = menuTexts.phpReport || "PHP-отчет";
+                document.getElementById("menuDownloadFile").textContent = menuTexts.downloadFile || "download_file";
+                document.getElementById("menuDownloadFile1").textContent = menuTexts.downloadFile1 || "download_file1";
+            }
+        })
+        .catch(error => {
+            console.error("Ошибка загрузки меню:", error);
+        });
+}
+// Загружаем текст меню при загрузке страницы
+document.addEventListener("DOMContentLoaded", loadMenuTexts);
+</script>
+
+<script>
+function requestPassword(targetUrl) {
+    const password = prompt("Введите пароль для доступа:");
+    if (password === "er") { // Укажите здесь ваш пароль
+        // Перенаправляем на целевую страницу, если пароль верен
+        window.location.href = targetUrl;
+    } else {
+        alert("Неверный пароль. Доступ запрещен.");
+    }
+}
+</script>
+</header>
+</body>
+</html>
+
+
+
+

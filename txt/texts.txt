@@ -1,0 +1,8 @@
+usernameLabel=ИмяName:
+passwordLabel=Пароль333:
+submitButton=Войти222
+closeButton=Закрыть111
+menu1=Главная3
+menu2=О нас3
+menu3=Контакты3
+menu4=Вход3
